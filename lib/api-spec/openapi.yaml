@@ -1,0 +1,1852 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.2.0
+  description: Punjab Blood Connect API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: public
+    description: Public search endpoints
+  - name: auth
+    description: Authentication
+  - name: user
+    description: Registered user endpoints
+  - name: hospital
+    description: Hospital dashboard
+  - name: admin
+    description: Admin management
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # --- PUBLIC SEARCH ---
+  /hospitals:
+    get:
+      operationId: searchHospitals
+      tags: [public]
+      summary: Search approved hospitals and blood banks
+      parameters:
+        - in: query
+          name: city
+          schema: { type: string }
+        - in: query
+          name: district
+          schema: { type: string }
+        - in: query
+          name: bloodGroup
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200":
+          description: List of hospitals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HospitalPublic"
+
+  /hospitals/{id}:
+    get:
+      operationId: getHospital
+      tags: [public]
+      summary: Get hospital details with blood inventory
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Hospital details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HospitalDetail"
+        "404":
+          description: Not found
+
+  /cities:
+    get:
+      operationId: listCities
+      tags: [public]
+      summary: List all cities
+      responses:
+        "200":
+          description: Cities list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/City"
+
+  /districts:
+    get:
+      operationId: listDistricts
+      tags: [public]
+      summary: List all districts
+      responses:
+        "200":
+          description: Districts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/District"
+
+  /public-stats:
+    get:
+      operationId: getPublicStats
+      tags: [public]
+      summary: Platform statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicStats"
+
+  /notifications/public:
+    get:
+      operationId: getPublicNotifications
+      tags: [public]
+      summary: Get published notifications visible to all users
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [public]
+      summary: List all active categories
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  # --- AUTH (admin + hospital) ---
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login for hospitals and admins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+        "403":
+          description: Hospital not approved yet
+
+  /auth/hospital/register:
+    post:
+      operationId: registerHospital
+      tags: [auth]
+      summary: Self-register a hospital or blood bank (pending admin approval)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HospitalRegistration"
+      responses:
+        "201":
+          description: Registration submitted, pending admin approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HospitalRegistrationResponse"
+        "409":
+          description: Email already registered
+
+  # --- USER AUTH ---
+  /auth/user/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a new public user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistration"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAuthResponse"
+        "409":
+          description: Email already exists
+
+  /auth/user/login:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login for public users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserAuthResponse"
+        "401":
+          description: Invalid credentials
+
+  # --- USER PROFILE ---
+  /user/profile:
+    get:
+      operationId: getUserProfile
+      tags: [user]
+      summary: Get own user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+    patch:
+      operationId: updateUserProfile
+      tags: [user]
+      summary: Update own user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /user/change-password:
+    post:
+      operationId: changeUserPassword
+      tags: [user]
+      summary: Change user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMessage"
+
+  # --- USER: BLOOD REQUESTS ---
+  /user/blood-requests:
+    get:
+      operationId: listUserBloodRequests
+      tags: [user]
+      summary: List blood requests submitted by the logged-in user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Blood requests list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BloodRequest"
+
+    post:
+      operationId: createBloodRequest
+      tags: [user]
+      summary: Submit a targeted blood request to a specific hospital or blood bank
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BloodRequestInput"
+      responses:
+        "201":
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequest"
+
+  /user/blood-requests/{id}/cancel:
+    patch:
+      operationId: cancelBloodRequest
+      tags: [user]
+      summary: Cancel own pending blood request
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequest"
+
+  # --- HOSPITAL: BLOOD REQUESTS ---
+  /hospital/blood-requests:
+    get:
+      operationId: listHospitalBloodRequests
+      tags: [hospital]
+      summary: List blood requests received by the logged-in hospital
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+      responses:
+        "200":
+          description: Blood requests list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BloodRequest"
+
+  /hospital/blood-requests/{id}:
+    patch:
+      operationId: respondToBloodRequest
+      tags: [hospital]
+      summary: Accept, fulfill, or decline a blood request
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BloodRequestResponseInput"
+      responses:
+        "200":
+          description: Updated request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodRequest"
+
+  # --- HOSPITAL DASHBOARD ---
+  /hospital/profile:
+    get:
+      operationId: getHospitalProfile
+      tags: [hospital]
+      summary: Get own hospital profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Hospital profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HospitalProfile"
+        "401":
+          description: Unauthorized
+
+    patch:
+      operationId: updateHospitalProfile
+      tags: [hospital]
+      summary: Update own hospital profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HospitalProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HospitalProfile"
+        "401":
+          description: Unauthorized
+
+  /hospital/inventory:
+    get:
+      operationId: getHospitalInventory
+      tags: [hospital]
+      summary: Get own blood inventory
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Blood inventory
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BloodInventoryItem"
+        "401":
+          description: Unauthorized
+
+  /hospital/inventory/{bloodGroup}:
+    patch:
+      operationId: updateBloodStock
+      tags: [hospital]
+      summary: Update blood stock for a specific blood group
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: bloodGroup
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BloodStockUpdate"
+      responses:
+        "200":
+          description: Updated inventory item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BloodInventoryItem"
+        "401":
+          description: Unauthorized
+
+  /hospital/inventory/history:
+    get:
+      operationId: getInventoryHistory
+      tags: [hospital]
+      summary: Get blood stock update history
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stock history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockHistoryItem"
+        "401":
+          description: Unauthorized
+
+  /hospital/change-password:
+    post:
+      operationId: changeHospitalPassword
+      tags: [hospital]
+      summary: Change hospital password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMessage"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+
+  # --- ADMIN ---
+  /admin/hospitals:
+    get:
+      operationId: adminListHospitals
+      tags: [admin]
+      summary: List all hospitals with filters
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: city
+          schema: { type: string }
+        - in: query
+          name: district
+          schema: { type: string }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+      responses:
+        "200":
+          description: All hospitals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminHospital"
+        "401":
+          description: Unauthorized
+
+    post:
+      operationId: adminCreateHospital
+      tags: [admin]
+      summary: Manually add a hospital (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminHospitalInput"
+      responses:
+        "201":
+          description: Hospital created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminHospital"
+        "401":
+          description: Unauthorized
+
+  /admin/hospitals/{id}:
+    get:
+      operationId: adminGetHospital
+      tags: [admin]
+      summary: Get hospital details (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Hospital details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminHospital"
+        "404":
+          description: Not found
+
+    patch:
+      operationId: adminUpdateHospital
+      tags: [admin]
+      summary: Edit hospital information
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminHospitalUpdate"
+      responses:
+        "200":
+          description: Updated hospital
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminHospital"
+
+    delete:
+      operationId: adminDeleteHospital
+      tags: [admin]
+      summary: Delete a hospital
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /admin/hospitals/{id}/approve:
+    patch:
+      operationId: approveHospital
+      tags: [admin]
+      summary: Approve a hospital registration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminHospital"
+
+  /admin/hospitals/{id}/reject:
+    patch:
+      operationId: rejectHospital
+      tags: [admin]
+      summary: Reject a hospital registration
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectionInput"
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminHospital"
+
+  /admin/hospitals/{id}/suspend:
+    patch:
+      operationId: suspendHospital
+      tags: [admin]
+      summary: Suspend a hospital
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminHospital"
+
+  /admin/hospitals/{id}/activate:
+    patch:
+      operationId: activateHospital
+      tags: [admin]
+      summary: Activate a suspended hospital
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminHospital"
+
+  /admin/hospitals/{id}/reset-password:
+    post:
+      operationId: adminResetPassword
+      tags: [admin]
+      summary: Reset hospital password
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordInput"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMessage"
+
+  /admin/alerts:
+    get:
+      operationId: listAdminAlerts
+      tags: [admin]
+      summary: List admin alerts (e.g. pending hospital registrations)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: unreadOnly
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: Admin alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminAlert"
+        "401":
+          description: Unauthorized
+
+  /admin/alerts/unread-count:
+    get:
+      operationId: getAdminAlertsUnreadCount
+      tags: [admin]
+      summary: Count of unread admin alerts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAlertsUnreadCount"
+        "401":
+          description: Unauthorized
+
+  /admin/alerts/{id}/read:
+    patch:
+      operationId: markAdminAlertRead
+      tags: [admin]
+      summary: Mark a single admin alert as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Alert marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAlert"
+        "404":
+          description: Not found
+
+  /admin/alerts/read-all:
+    patch:
+      operationId: markAllAdminAlertsRead
+      tags: [admin]
+      summary: Mark all admin alerts as read
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All alerts marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMessage"
+        "401":
+          description: Unauthorized
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Admin dashboard analytics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+        "401":
+          description: Unauthorized
+
+  /admin/audit-logs:
+    get:
+      operationId: getAuditLogs
+      tags: [admin]
+      summary: View audit logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: hospitalId
+          schema: { type: integer }
+        - in: query
+          name: action
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLog"
+        "401":
+          description: Unauthorized
+
+  # --- ADMIN: USERS ---
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all registered users
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: limit
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+
+  /admin/users/{id}:
+    get:
+      operationId: adminGetUser
+      tags: [admin]
+      summary: Get user details
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "404":
+          description: Not found
+
+    delete:
+      operationId: adminDeleteUser
+      tags: [admin]
+      summary: Delete a user account
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/users/{id}/block:
+    patch:
+      operationId: adminBlockUser
+      tags: [admin]
+      summary: Block or unblock a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockUserInput"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{id}/reset-password:
+    post:
+      operationId: adminResetUserPassword
+      tags: [admin]
+      summary: Reset user password
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordInput"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMessage"
+
+  # --- ADMIN: NOTIFICATIONS ---
+  /admin/notifications:
+    get:
+      operationId: adminListNotifications
+      tags: [admin]
+      summary: List all notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+    post:
+      operationId: adminCreateNotification
+      tags: [admin]
+      summary: Create a notification or alert
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationInput"
+      responses:
+        "201":
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /admin/notifications/{id}:
+    patch:
+      operationId: adminUpdateNotification
+      tags: [admin]
+      summary: Update a notification
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationUpdate"
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+    delete:
+      operationId: adminDeleteNotification
+      tags: [admin]
+      summary: Delete a notification
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/notifications/{id}/publish:
+    patch:
+      operationId: adminPublishNotification
+      tags: [admin]
+      summary: Publish a notification (make visible to users)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  # --- HOSPITAL: NOTIFICATIONS (blood donation camps) ---
+  /hospital/notifications:
+    get:
+      operationId: hospitalListNotifications
+      tags: [hospital]
+      summary: List notifications submitted by the logged-in hospital
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+    post:
+      operationId: hospitalCreateNotification
+      tags: [hospital]
+      summary: Submit a blood donation camp notification
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HospitalNotificationInput"
+      responses:
+        "201":
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+
+  /hospital/notifications/{id}:
+    delete:
+      operationId: hospitalDeleteNotification
+      tags: [hospital]
+      summary: Retract a notification submitted by the logged-in hospital
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  # --- ADMIN: CATEGORIES ---
+  /admin/categories:
+    get:
+      operationId: adminListCategories
+      tags: [admin]
+      summary: List all categories
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+    post:
+      operationId: adminCreateCategory
+      tags: [admin]
+      summary: Create a category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /admin/categories/{id}:
+    patch:
+      operationId: adminUpdateCategory
+      tags: [admin]
+      summary: Update a category
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+    delete:
+      operationId: adminDeleteCategory
+      tags: [admin]
+      summary: Delete a category
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+
+    # --- SHARED ---
+    BloodInventoryItem:
+      type: object
+      required: [id, hospitalId, bloodGroup, units, status, lastUpdated]
+      properties:
+        id: { type: integer }
+        hospitalId: { type: integer }
+        bloodGroup: { type: string }
+        units: { type: integer }
+        status: { type: string }
+        lastUpdated: { type: string }
+
+    StockHistoryItem:
+      type: object
+      required: [id, hospitalId, bloodGroup, unitsBefore, unitsAfter, action, createdAt]
+      properties:
+        id: { type: integer }
+        hospitalId: { type: integer }
+        bloodGroup: { type: string }
+        unitsBefore: { type: integer }
+        unitsAfter: { type: integer }
+        action: { type: string }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    City:
+      type: object
+      required: [id, name, district]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        district: { type: string }
+
+    District:
+      type: object
+      required: [id, name, state]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        state: { type: string }
+
+    AuditLog:
+      type: object
+      required: [id, action, entityType, createdAt]
+      properties:
+        id: { type: integer }
+        action: { type: string }
+        entityType: { type: string }
+        entityId: { type: ["integer", "null"] }
+        performedBy: { type: ["string", "null"] }
+        details: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    # --- NOTIFICATIONS ---
+    Notification:
+      type: object
+      required: [id, title, message, type, status, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        message: { type: string }
+        type: { type: string }
+        status: { type: string }
+        hospitalId: { type: ["integer", "null"] }
+        hospitalName: { type: ["string", "null"] }
+        campDate: { type: ["string", "null"] }
+        campLocation: { type: ["string", "null"] }
+        publishedAt: { type: ["string", "null"] }
+        expiresAt: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    NotificationInput:
+      type: object
+      required: [title, message, type]
+      properties:
+        title: { type: string }
+        message: { type: string }
+        type: { type: string }
+        expiresAt: { type: string }
+
+    NotificationUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        message: { type: string }
+        type: { type: string }
+        status: { type: string }
+        expiresAt: { type: string }
+
+    HospitalNotificationInput:
+      type: object
+      required: [title, message, campDate, campLocation]
+      properties:
+        title: { type: string }
+        message: { type: string }
+        campDate: { type: string }
+        campLocation: { type: string }
+        expiresAt: { type: string }
+        # If true, the camp notification is published immediately. If false
+        # (or omitted), it's submitted as pending_review for admin approval.
+        publishNow: { type: boolean }
+
+    # --- CATEGORIES ---
+    Category:
+      type: object
+      required: [id, name, isActive, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        color: { type: ["string", "null"] }
+        isActive: { type: boolean }
+        createdAt: { type: string }
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        color: { type: string }
+
+    CategoryUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+        color: { type: string }
+        isActive: { type: boolean }
+
+    # --- PUBLIC ---
+    HospitalPublic:
+      type: object
+      required: [id, name, type, ownership, city, district, address, contactNumber, status]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        type: { type: string }
+        ownership: { type: string }
+        city: { type: string }
+        district: { type: string }
+        address: { type: string }
+        pinCode: { type: ["string", "null"] }
+        contactNumber: { type: string }
+        email: { type: ["string", "null"] }
+        website: { type: ["string", "null"] }
+        googleMapsLat: { type: ["number", "null"] }
+        googleMapsLng: { type: ["number", "null"] }
+        workingHours: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        status: { type: string }
+        bloodInventory:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodInventoryItem"
+
+    HospitalDetail:
+      type: object
+      required: [id, name, type, ownership, city, district, address, contactNumber, status, bloodInventory]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        type: { type: string }
+        ownership: { type: string }
+        city: { type: string }
+        district: { type: string }
+        address: { type: string }
+        pinCode: { type: ["string", "null"] }
+        contactNumber: { type: string }
+        email: { type: ["string", "null"] }
+        website: { type: ["string", "null"] }
+        googleMapsLat: { type: ["number", "null"] }
+        googleMapsLng: { type: ["number", "null"] }
+        workingHours: { type: ["string", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        status: { type: string }
+        bloodInventory:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodInventoryItem"
+
+    PublicStats:
+      type: object
+      required: [totalHospitals, totalBloodBanks, availableBloodUnits, citiesServed, districtsServed]
+      properties:
+        totalHospitals: { type: integer }
+        totalBloodBanks: { type: integer }
+        availableBloodUnits: { type: integer }
+        citiesServed: { type: integer }
+        districtsServed: { type: integer }
+        bloodGroupCounts:
+          type: array
+          items:
+            type: object
+            required: [bloodGroup, totalUnits, hospitalsAvailable]
+            properties:
+              bloodGroup: { type: string }
+              totalUnits: { type: integer }
+              hospitalsAvailable: { type: integer }
+
+    # --- AUTH ---
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+
+    AuthResponse:
+      type: object
+      required: [token, role]
+      properties:
+        token: { type: string }
+        role: { type: string }
+        hospitalId: { type: ["integer", "null"] }
+        name: { type: string }
+
+    AuthMessage:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: { type: string }
+        newPassword: { type: string }
+
+    # --- HOSPITAL SELF-REGISTRATION ---
+    HospitalRegistration:
+      type: object
+      required: [name, registrationNumber, type, ownership, city, district, address, contactPerson, contactNumber, email, password]
+      properties:
+        name: { type: string }
+        registrationNumber: { type: string }
+        licenseNumber: { type: string }
+        type: { type: string }
+        ownership: { type: string }
+        city: { type: string }
+        district: { type: string }
+        state: { type: string }
+        address: { type: string }
+        pinCode: { type: string }
+        contactPerson: { type: string }
+        contactNumber: { type: string }
+        email: { type: string }
+        password: { type: string }
+        website: { type: string }
+        workingHours: { type: string }
+
+    HospitalRegistrationResponse:
+      type: object
+      required: [message, hospitalId, approvalStatus]
+      properties:
+        message: { type: string }
+        hospitalId: { type: integer }
+        approvalStatus: { type: string }
+
+    # --- USER AUTH ---
+    UserRegistration:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string }
+        email: { type: string }
+        password: { type: string }
+        phone: { type: string }
+        bloodGroup: { type: string }
+        city: { type: string }
+        district: { type: string }
+
+    UserAuthResponse:
+      type: object
+      required: [token, role, user]
+      properties:
+        token: { type: string }
+        role: { type: string }
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    UserProfile:
+      type: object
+      required: [id, name, email, isBlocked, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        bloodGroup: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        district: { type: ["string", "null"] }
+        isBlocked: { type: boolean }
+        createdAt: { type: string }
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        phone: { type: string }
+        bloodGroup: { type: string }
+        city: { type: string }
+        district: { type: string }
+
+    # --- BLOOD REQUESTS ---
+    BloodRequest:
+      type: object
+      required: [id, userId, hospitalId, bloodGroup, units, urgency, patientName, contactNumber, status, createdAt]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        hospitalId: { type: integer }
+        hospitalName: { type: ["string", "null"] }
+        bloodGroup: { type: string }
+        units: { type: integer }
+        urgency: { type: string }
+        patientName: { type: string }
+        contactNumber: { type: string }
+        notes: { type: ["string", "null"] }
+        status: { type: string }
+        hospitalResponse: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    BloodRequestInput:
+      type: object
+      required: [hospitalId, bloodGroup, units, urgency, patientName, contactNumber]
+      properties:
+        hospitalId: { type: integer }
+        bloodGroup: { type: string }
+        units: { type: integer, minimum: 1 }
+        urgency: { type: string }
+        patientName: { type: string }
+        contactNumber: { type: string }
+        notes: { type: string }
+
+    BloodRequestResponseInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+        hospitalResponse: { type: string }
+
+    # --- ADMIN USERS ---
+    AdminUser:
+      type: object
+      required: [id, name, email, isBlocked, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: ["string", "null"] }
+        bloodGroup: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        district: { type: ["string", "null"] }
+        isBlocked: { type: boolean }
+        lastLogin: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    UserListResponse:
+      type: object
+      required: [users, total, page, limit]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUser"
+        total: { type: integer }
+        page: { type: integer }
+        limit: { type: integer }
+
+    BlockUserInput:
+      type: object
+      required: [blocked]
+      properties:
+        blocked: { type: boolean }
+        reason: { type: string }
+
+    ResetPasswordInput:
+      type: object
+      required: [newPassword]
+      properties:
+        newPassword: { type: string }
+
+    # --- HOSPITAL DASHBOARD ---
+    HospitalProfile:
+      type: object
+      required: [id, name, type, ownership, city, district, address, contactNumber, status]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        registrationNumber: { type: string }
+        type: { type: string }
+        ownership: { type: string }
+        city: { type: string }
+        district: { type: string }
+        state: { type: string }
+        address: { type: string }
+        pinCode: { type: ["string", "null"] }
+        contactPerson: { type: string }
+        contactNumber: { type: string }
+        email: { type: string }
+        website: { type: ["string", "null"] }
+        workingHours: { type: ["string", "null"] }
+        googleMapsLat: { type: ["number", "null"] }
+        googleMapsLng: { type: ["number", "null"] }
+        logoUrl: { type: ["string", "null"] }
+        approvalStatus: { type: string }
+        status: { type: string }
+        createdAt: { type: string }
+
+    HospitalProfileUpdate:
+      type: object
+      properties:
+        contactPerson: { type: string }
+        contactNumber: { type: string }
+        address: { type: string }
+        pinCode: { type: string }
+        website: { type: string }
+        workingHours: { type: string }
+        googleMapsLat: { type: number }
+        googleMapsLng: { type: number }
+
+    BloodStockUpdate:
+      type: object
+      required: [units]
+      properties:
+        units: { type: integer }
+        notes: { type: string }
+
+    # --- ADMIN HOSPITAL ---
+    AdminHospital:
+      type: object
+      required: [id, name, type, ownership, city, district, address, contactNumber, approvalStatus]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        registrationNumber: { type: string }
+        type: { type: string }
+        ownership: { type: string }
+        city: { type: string }
+        district: { type: string }
+        state: { type: string }
+        address: { type: string }
+        pinCode: { type: ["string", "null"] }
+        contactPerson: { type: string }
+        contactNumber: { type: string }
+        email: { type: string }
+        website: { type: ["string", "null"] }
+        workingHours: { type: ["string", "null"] }
+        googleMapsLat: { type: ["number", "null"] }
+        googleMapsLng: { type: ["number", "null"] }
+        approvalStatus: { type: string }
+        isActive: { type: boolean }
+        rejectionReason: { type: ["string", "null"] }
+        createdAt: { type: string }
+        bloodInventory:
+          type: array
+          items:
+            $ref: "#/components/schemas/BloodInventoryItem"
+
+    AdminHospitalInput:
+      type: object
+      required: [name, registrationNumber, type, ownership, city, district, address, contactPerson, contactNumber, email, password]
+      properties:
+        name: { type: string }
+        registrationNumber: { type: string }
+        licenseNumber: { type: string }
+        type: { type: string }
+        ownership: { type: string }
+        city: { type: string }
+        district: { type: string }
+        state: { type: string }
+        address: { type: string }
+        pinCode: { type: string }
+        googleMapsLat: { type: number }
+        googleMapsLng: { type: number }
+        contactPerson: { type: string }
+        contactNumber: { type: string }
+        email: { type: string }
+        password: { type: string }
+        website: { type: string }
+        workingHours: { type: string }
+        status: { type: string, enum: [active, inactive] }
+        initialInventory:
+          type: array
+          items:
+            type: object
+            required: [bloodGroup, units]
+            properties:
+              bloodGroup: { type: string }
+              units: { type: integer }
+
+    AdminHospitalUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        registrationNumber: { type: string }
+        licenseNumber: { type: string }
+        type: { type: string }
+        ownership: { type: string }
+        city: { type: string }
+        district: { type: string }
+        state: { type: string }
+        address: { type: string }
+        pinCode: { type: string }
+        contactPerson: { type: string }
+        contactNumber: { type: string }
+        email: { type: string }
+        website: { type: string }
+        workingHours: { type: string }
+        googleMapsLat: { type: number }
+        googleMapsLng: { type: number }
+        status: { type: string, enum: [active, inactive] }
+
+    RejectionInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+
+    AdminAlert:
+      type: object
+      required: [id, type, title, message, isRead, createdAt]
+      properties:
+        id: { type: integer }
+        type: { type: string }
+        title: { type: string }
+        message: { type: string }
+        entityType: { type: ["string", "null"] }
+        entityId: { type: ["integer", "null"] }
+        isRead: { type: boolean }
+        createdAt: { type: string }
+
+    AdminAlertsUnreadCount:
+      type: object
+      required: [count]
+      properties:
+        count: { type: integer }
+
+    AdminStats:
+      type: object
+      required: [totalHospitals, totalBloodBanks, pendingApprovals, totalUsers, activeNotifications]
+      properties:
+        totalHospitals: { type: integer }
+        totalBloodBanks: { type: integer }
+        pendingApprovals: { type: integer }
+        approvedHospitals: { type: integer }
+        suspendedHospitals: { type: integer }
+        totalUsers: { type: integer }
+        blockedUsers: { type: integer }
+        activeNotifications: { type: integer }
+        totalBloodUnits: { type: integer }
+        bloodGroupStats:
+          type: array
+          items:
+            type: object
+            properties:
+              bloodGroup: { type: string }
+              totalUnits: { type: integer }
+              hospitalsAvailable: { type: integer }
+        cityStats:
+          type: array
+          items:
+            type: object
+            properties:
+              city: { type: string }
+              hospitalCount: { type: integer }
+              totalUnits: { type: integer }
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"

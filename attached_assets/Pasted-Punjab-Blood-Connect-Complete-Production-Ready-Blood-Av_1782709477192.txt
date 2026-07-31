@@ -1,0 +1,359 @@
+Punjab Blood Connect – Complete Production-Ready Blood Availability Platform
+
+Build a production-ready Android and Web application called Punjab Blood Connect that provides real-time blood availability across hospitals and blood banks in Punjab, India.
+
+This application must use real database integration (no dummy data) and include complete authentication, hospital registration, approval workflow, inventory management, admin controls, analytics, and secure APIs.
+
+---
+
+Objective
+
+Create a centralized platform where users can instantly search blood availability by city, hospital, blood bank, or blood group.
+
+Only approved hospitals and blood banks should be visible to the public.
+
+---
+
+User Roles
+
+- Super Admin
+- Hospital/Blood Bank
+- Public User
+
+---
+
+Public User Features
+
+Users can:
+
+- Search by City
+- Search by District
+- Search by Blood Group
+- Search Hospitals
+- Search Blood Banks
+- View Available Blood Units
+- View Blood Stock Status
+- View Last Updated Time
+- View Hospital/Blood Bank Name
+- View Address
+- View Contact Number
+- Open Google Maps
+- Call Hospital/Blood Bank directly
+
+Only approved hospitals and blood banks should appear in search results.
+
+---
+
+Punjab Coverage
+
+Include all districts and major cities of Punjab.
+
+The database should support unlimited cities and future expansion to all Indian states.
+
+---
+
+Complete Hospital & Blood Bank Registration System
+
+Hospitals and Blood Banks can register themselves.
+
+Create a registration form containing:
+
+- Hospital/Blood Bank Name
+- Registration Number
+- Hospital Type
+- Government / Private
+- City
+- District
+- State (Punjab)
+- Complete Address
+- PIN Code
+- Google Maps Location
+- Contact Person
+- Mobile Number
+- Email
+- Password
+- License Upload (PDF/JPG)
+- Hospital Logo (Optional)
+
+After submission:
+
+- Save all information in PostgreSQL.
+- Registration Status = Pending Approval.
+- Do not show the hospital publicly until approved.
+
+---
+
+Manual Hospital & Blood Bank Entry
+
+The Super Admin must be able to manually add hospitals and blood banks.
+
+Admin form should include:
+
+- Hospital/Blood Bank Name
+- Type
+- Government/Private
+- Registration Number
+- License Number
+- City
+- District
+- State
+- Address
+- PIN Code
+- Contact Person
+- Mobile Number
+- Email
+- Website
+- Google Maps Coordinates
+- Working Hours
+- Hospital Logo
+- Initial Blood Inventory
+- Active/Inactive Status
+
+After saving, the hospital should immediately appear if Active and Approved.
+
+---
+
+Super Admin Dashboard
+
+Create a powerful admin dashboard.
+
+Admin can:
+
+- View pending registrations
+- View uploaded documents
+- Approve hospitals
+- Reject hospitals with reason
+- Suspend hospitals
+- Activate hospitals
+- Delete hospitals
+- Edit hospital information
+- Reset hospital password
+- Search hospitals by city
+- Search hospitals by name
+- Search hospitals by district
+- View registration date
+- View last login
+- View audit logs
+- View blood inventory
+- Manage users
+- Manage hospitals
+- Manage blood banks
+- Dashboard analytics
+- City-wise hospital count
+- Blood stock statistics
+- Export hospitals to Excel
+- Export hospitals to PDF
+- Advanced search & filters
+
+---
+
+Hospital Dashboard
+
+Only approved hospitals can log in.
+
+Hospitals should be able to:
+
+- Secure Login
+- Edit profile
+- Change password
+- Update hospital details
+- Upload logo
+- Update working hours
+- Update emergency contacts
+
+Blood Inventory Management
+
+Hospitals should manage:
+
+- A+
+- A-
+- B+
+- B-
+- AB+
+- AB-
+- O+
+- O-
+
+For each blood group store:
+
+- Units Available
+- Last Updated Time
+- Status
+  - Available
+  - Low Stock
+  - Out of Stock
+
+Hospitals can:
+
+- Add blood units
+- Remove blood units
+- Update blood inventory
+- View blood stock history
+- View update history
+
+Every inventory update should instantly reflect in the public application.
+
+---
+
+Blood Inventory Database
+
+Store:
+
+- Hospital ID
+- Blood Group
+- Units Available
+- Last Updated
+- Status
+
+Support real-time updates.
+
+---
+
+Database
+
+Use PostgreSQL.
+
+Create tables:
+
+- Users
+- Admins
+- Hospitals
+- BloodBanks
+- BloodInventory
+- BloodStockHistory
+- ApprovalRequests
+- Documents
+- AuditLogs
+- Cities
+- Districts
+
+Include proper foreign keys and indexing.
+
+Generate SQL migration files.
+
+---
+
+Authentication & Security
+
+Implement:
+
+- JWT Authentication
+- Password Hashing (bcrypt)
+- Role-Based Access Control
+- Input Validation
+- SQL Injection Protection
+- XSS Protection
+- CSRF Protection
+- Rate Limiting
+- Secure File Upload Validation
+- Audit Logs
+- Secure REST APIs
+- Error Handling
+
+---
+
+Google Maps Integration
+
+Integrate Google Maps API.
+
+Allow users to:
+
+- View hospital location
+- Navigate to hospitals
+- Find nearby hospitals
+
+---
+
+UI Design
+
+Modern Material Design.
+
+Include:
+
+- Red and White healthcare theme
+- Dark Mode
+- Mobile Responsive
+- Tablet Responsive
+- Desktop Responsive
+- Fast Search
+- Clean Dashboard
+- Professional Cards
+- Smooth Animations
+
+---
+
+Tech Stack
+
+Frontend
+
+- React
+- Tailwind CSS
+
+Backend
+
+- Node.js
+- Express.js
+
+Database
+
+- PostgreSQL
+
+Authentication
+
+- JWT
+
+Maps
+
+- Google Maps API
+
+File Storage
+
+- Local Storage or Cloudinary
+
+---
+
+Project Structure
+
+Generate a production-ready application with:
+
+- Clean folder structure
+- Modular architecture
+- REST APIs
+- Database schema
+- SQL migration files
+- Authentication system
+- Super Admin panel
+- Hospital dashboard
+- Responsive UI
+- Validation
+- Proper error handling
+- Secure backend
+- Real PostgreSQL database integration
+- No dummy or mock data
+
+---
+
+Future Features
+
+- Blood donor registration
+- Blood donation camp management
+- QR code for hospital identification
+- Ambulance directory
+- Emergency SOS
+- Multi-language support (English, Punjabi, Hindi)
+- Government health department integration
+- AI-based blood demand forecasting
+- State-wide analytics dashboard
+
+---
+
+Important Requirements
+
+- Use only real PostgreSQL database integration.
+- Do not use mock or fake data.
+- Only approved hospitals and blood banks should be publicly visible.
+- The Super Admin must be able to manually add hospitals and blood banks.
+- Hospitals can self-register but cannot access the dashboard until approved.
+- Every blood stock update must instantly reflect in the public application.
+- Build a scalable architecture capable of supporting all districts of Punjab and future expansion to other Indian states.
+- Write clean, production-quality code with comprehensive validation, security, and documentation.

@@ -1,0 +1,62 @@
+databases:
+  - name: punjab-blood-connect-db
+    plan: free
+    postgresMajorVersion: 16
+
+services:
+  # --- Backend API ---
+  - type: web
+    name: punjab-blood-connect-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
+    startCommand: pnpm --filter @workspace/api-server run start
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: punjab-blood-connect-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+  # --- Donor-facing app (Vite static build served via sirv) ---
+  - type: web
+    name: punjab-blood-connect-donor
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/donor-app run build
+    startCommand: pnpm --filter @workspace/donor-app run serve
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+
+  # --- Hospital-facing app ---
+  - type: web
+    name: punjab-blood-connect-hospital
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/hospital-app run build
+    startCommand: pnpm --filter @workspace/hospital-app run serve
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+
+  # --- Admin app ---
+  - type: web
+    name: punjab-blood-connect-admin
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/admin-app run build
+    startCommand: pnpm --filter @workspace/admin-app run serve
+    envVars:
+      - key: VITE_API_URL
+        sync: false
