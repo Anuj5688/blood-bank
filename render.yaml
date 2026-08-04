@@ -6,7 +6,7 @@ databases:
 services:
   # --- Backend API ---
   - type: web
-    name: punjab-blood-connect-api
+    name: blood-bank-api
     runtime: node
     plan: free
     rootDir: .
@@ -27,7 +27,7 @@ services:
 
   # --- Donor-facing app (Vite static build served via sirv) ---
   - type: web
-    name: punjab-blood-connect-donor
+    name: blood-bank-donor
     runtime: node
     plan: free
     rootDir: .
@@ -39,7 +39,7 @@ services:
 
   # --- Hospital-facing app ---
   - type: web
-    name: punjab-blood-connect-hospital
+    name: blood-bank-hospital
     runtime: node
     plan: free
     rootDir: .
@@ -51,7 +51,7 @@ services:
 
   # --- Admin app ---
   - type: web
-    name: punjab-blood-connect-admin
+    name: blood-bank-admin
     runtime: node
     plan: free
     rootDir: .

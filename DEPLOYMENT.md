@@ -7,10 +7,10 @@ describes all of them, so the fastest path is Render's Blueprint deploy.
 | Service                         | Path                    | Domain example                                 |
 | -------------------------------- | ----------------------- | ------------------------------------------------ |
 | Postgres                         | Render managed database | (internal)                                        |
-| `punjab-blood-connect-api`        | `artifacts/api-server`   | `punjab-blood-connect-api.onrender.com`           |
-| `punjab-blood-connect-donor`      | `artifacts/donor-app`    | `punjab-blood-connect-donor.onrender.com`         |
-| `punjab-blood-connect-hospital`   | `artifacts/hospital-app` | `punjab-blood-connect-hospital.onrender.com`      |
-| `punjab-blood-connect-admin`      | `artifacts/admin-app`    | `punjab-blood-connect-admin.onrender.com`         |
+| `blood-bank-api`        | `artifacts/api-server`   | `blood-bank-api.onrender.com`           |
+| `blood-bank-donor`      | `artifacts/donor-app`    | `blood-bank-donor.onrender.com`         |
+| `blood-bank-hospital`   | `artifacts/hospital-app` | `blood-bank-hospital.onrender.com`      |
+| `blood-bank-admin`      | `artifacts/admin-app`    | `blood-bank-admin.onrender.com`         |
 
 Each frontend calls the API on its own domain (CORS, not a shared reverse
 proxy), matching how the apps are wired via `setBaseUrl()`.
@@ -22,17 +22,17 @@ proxy), matching how the apps are wired via `setBaseUrl()`.
    this repo. Render reads `render.yaml` from the repo root and proposes
    all four services plus the database.
 3. Render generates `SESSION_SECRET` automatically and wires `DATABASE_URL`
-   from the database to `punjab-blood-connect-api` automatically (both are
+   from the database to `blood-bank-api` automatically (both are
    declared in `render.yaml`).
 4. For each of the two vars marked `sync: false` in `render.yaml`, Render
    will prompt you to fill them in during the Blueprint setup (or you can
    set them afterward in each service's **Environment** tab):
-   - `punjab-blood-connect-api` → `CORS_ALLOWED_ORIGINS` (leave blank for
+   - `blood-bank-api` → `CORS_ALLOWED_ORIGINS` (leave blank for
      now — you can only fill this in once the frontend domains exist; see
      step 6 below)
-   - `punjab-blood-connect-donor`, `punjab-blood-connect-hospital`,
-     `punjab-blood-connect-admin` → `VITE_API_URL` (the API service's URL,
-     e.g. `https://punjab-blood-connect-api.onrender.com`, no trailing
+   - `blood-bank-donor`, `blood-bank-hospital`,
+     `blood-bank-admin` → `VITE_API_URL` (the API service's URL,
+     e.g. `https://blood-bank-api.onrender.com`, no trailing
      slash). **This must be set before the first build** — Vite bakes it
      into the static bundle, so changing it later requires a manual
      redeploy, not just a restart.
@@ -106,7 +106,7 @@ node -e "console.log(require('bcryptjs').hashSync('your-password', 12))"
 ## Close the CORS loop
 
 Once all three frontend domains exist, go back to
-`punjab-blood-connect-api`'s Environment tab and set:
+`blood-bank-api`'s Environment tab and set:
 
 ```
 CORS_ALLOWED_ORIGINS=https://<donor-app-domain>,https://<hospital-app-domain>,https://<admin-app-domain>
