@@ -7,6 +7,32 @@ import { signToken } from "../middlewares/auth";
 
 const router = Router();
 
+const MAX_LICENSE_DOCUMENT_BYTES = 300 * 1024; // 300KB
+
+/**
+ * Validates a base64 data-URL PDF upload: must be a PDF, and the decoded
+ * (actual file) size must not exceed MAX_LICENSE_DOCUMENT_BYTES. Client-side
+ * checks exist too, but this is the enforcement that actually matters.
+ */
+function validateLicenseDocument(dataUrl: string): { ok: true } | { ok: false; error: string } {
+  const match = /^data:application\/pdf;base64,(.+)$/.exec(dataUrl);
+  if (!match) {
+    return { ok: false, error: "License document must be a PDF file" };
+  }
+
+  const base64Payload = match[1];
+  // Decoded byte length from base64 length, without allocating a Buffer
+  // for a value we haven't size-checked yet.
+  const padding = base64Payload.endsWith("==") ? 2 : base64Payload.endsWith("=") ? 1 : 0;
+  const decodedBytes = (base64Payload.length * 3) / 4 - padding;
+
+  if (decodedBytes > MAX_LICENSE_DOCUMENT_BYTES) {
+    return { ok: false, error: "License document must be 300KB or smaller" };
+  }
+
+  return { ok: true };
+}
+
 router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
@@ -80,6 +106,14 @@ router.post("/auth/hospital/register", async (req, res): Promise<void> => {
 
   const data = parsed.data;
 
+  if (data.licenseDocument) {
+    const validation = validateLicenseDocument(data.licenseDocument);
+    if (!validation.ok) {
+      res.status(400).json({ error: validation.error });
+      return;
+    }
+  }
+
   const [existingHospital] = await db
     .select({ id: hospitalsTable.id })
     .from(hospitalsTable)
@@ -121,6 +155,8 @@ router.post("/auth/hospital/register", async (req, res): Promise<void> => {
       passwordHash,
       website: data.website ?? null,
       workingHours: data.workingHours ?? null,
+      licenseDocumentUrl: data.licenseDocument ?? null,
+      licenseDocumentFileName: data.licenseDocumentFileName ?? null,
       approvalStatus: "pending",
       isActive: true,
     })

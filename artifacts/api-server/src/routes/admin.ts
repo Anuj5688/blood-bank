@@ -67,6 +67,8 @@ function formatHospital(hospital: typeof hospitalsTable.$inferSelect, inventory:
     googleMapsLng: hospital.googleMapsLng ? parseFloat(hospital.googleMapsLng) : null,
     workingHours: hospital.workingHours,
     logoUrl: hospital.logoUrl,
+    licenseDocumentUrl: hospital.licenseDocumentUrl,
+    licenseDocumentFileName: hospital.licenseDocumentFileName,
     status: hospital.isActive ? "Active" : "Inactive",
     approvalStatus: hospital.approvalStatus,
     rejectionReason: hospital.rejectionReason,

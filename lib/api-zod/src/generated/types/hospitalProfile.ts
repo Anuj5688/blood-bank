@@ -31,6 +31,13 @@ export interface HospitalProfile {
   googleMapsLng?: number | null;
   /** @nullable */
   logoUrl?: string | null;
+  /**
+     * Base64 data URL of the uploaded proof-of-license PDF.
+     * @nullable
+     */
+  licenseDocumentUrl?: string | null;
+  /** @nullable */
+  licenseDocumentFileName?: string | null;
   approvalStatus?: string;
   status: string;
   createdAt?: string;

@@ -232,6 +232,10 @@ export interface HospitalRegistration {
   password: string;
   website?: string;
   workingHours?: string;
+  /** Proof-of-license PDF as a base64 data URL (e.g. "data:application/pdf;base64,..."). Max 300KB. */
+  licenseDocument?: string;
+  /** Original filename of the uploaded license PDF. */
+  licenseDocumentFileName?: string;
 }
 
 export interface HospitalRegistrationResponse {
@@ -375,6 +379,13 @@ export interface HospitalProfile {
   googleMapsLng?: number | null;
   /** @nullable */
   logoUrl?: string | null;
+  /**
+     * Base64 data URL of the uploaded proof-of-license PDF.
+     * @nullable
+     */
+  licenseDocumentUrl?: string | null;
+  /** @nullable */
+  licenseDocumentFileName?: string | null;
   approvalStatus?: string;
   status: string;
   createdAt?: string;
@@ -423,6 +434,13 @@ export interface AdminHospital {
   isActive?: boolean;
   /** @nullable */
   rejectionReason?: string | null;
+  /**
+     * Base64 data URL of the uploaded proof-of-license PDF.
+     * @nullable
+     */
+  licenseDocumentUrl?: string | null;
+  /** @nullable */
+  licenseDocumentFileName?: string | null;
   createdAt?: string;
   bloodInventory?: BloodInventoryItem[];
 }

@@ -180,6 +180,20 @@ export function HospitalDetail({ id }: Props) {
             <div className="flex justify-between"><span className="text-muted-foreground">Address</span><span className="text-right max-w-[200px]">{hospital.address}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">PIN Code</span><span>{hospital.pinCode || "—"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Working Hours</span><span>{hospital.workingHours || "—"}</span></div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Proof of License</span>
+              {hospital.licenseDocumentUrl ? (
+                <a
+                  href={hospital.licenseDocumentUrl}
+                  download={hospital.licenseDocumentFileName || "license.pdf"}
+                  className="text-primary hover:underline"
+                >
+                  {hospital.licenseDocumentFileName || "View PDF"}
+                </a>
+              ) : (
+                <span>Not provided</span>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

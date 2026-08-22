@@ -31,6 +31,11 @@ export const hospitalsTable = pgTable("hospitals", {
   googleMapsLng: numeric("google_maps_lng"),
   workingHours: text("working_hours"),
   logoUrl: text("logo_url"),
+  // Proof-of-license PDF, stored inline as a base64 data URL
+  // (e.g. "data:application/pdf;base64,..."). Capped at 300KB on upload
+  // (client + server enforced) so this stays cheap to store as text.
+  licenseDocumentUrl: text("license_document_url"),
+  licenseDocumentFileName: text("license_document_file_name"),
   // approval_status: pending | approved | rejected | suspended
   approvalStatus: text("approval_status").notNull().default("pending"),
   rejectionReason: text("rejection_reason"),

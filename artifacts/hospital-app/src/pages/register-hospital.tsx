@@ -12,7 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, CheckCircle2 } from "lucide-react";
+import { Building2, CheckCircle2, FileText, Upload, X } from "lucide-react";
+
+const MAX_LICENSE_DOCUMENT_BYTES = 300 * 1024; // 300KB
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,11 +36,28 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+function formatFileSize(bytes: number): string {
+  return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(0)} KB`;
+}
+
+/** Reads a File into a base64 data URL (e.g. "data:application/pdf;base64,...") */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function RegisterHospital() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const registerHospital = useRegisterHospital();
   const [submitted, setSubmitted] = useState(false);
+  const [licenseFile, setLicenseFile] = useState<File | null>(null);
+  const [licenseError, setLicenseError] = useState<string | null>(null);
+  const [licenseDataUrl, setLicenseDataUrl] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -62,6 +81,45 @@ export default function RegisterHospital() {
     },
   });
 
+  async function handleLicenseFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file after an error
+    if (!file) return;
+
+    setLicenseError(null);
+
+    if (file.type !== "application/pdf") {
+      setLicenseError("Please upload a PDF file");
+      setLicenseFile(null);
+      setLicenseDataUrl(null);
+      return;
+    }
+    if (file.size > MAX_LICENSE_DOCUMENT_BYTES) {
+      setLicenseError(
+        `File is ${formatFileSize(file.size)}, which is over the 300 KB limit. Please compress it and try again.`
+      );
+      setLicenseFile(null);
+      setLicenseDataUrl(null);
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setLicenseFile(file);
+      setLicenseDataUrl(dataUrl);
+    } catch {
+      setLicenseError("Could not read that file. Please try again.");
+      setLicenseFile(null);
+      setLicenseDataUrl(null);
+    }
+  }
+
+  function removeLicenseFile() {
+    setLicenseFile(null);
+    setLicenseDataUrl(null);
+    setLicenseError(null);
+  }
+
   function onSubmit(values: FormData) {
     registerHospital.mutate(
       {
@@ -82,6 +140,8 @@ export default function RegisterHospital() {
           password: values.password,
           website: values.website || undefined,
           workingHours: values.workingHours || undefined,
+          licenseDocument: licenseDataUrl || undefined,
+          licenseDocumentFileName: licenseFile?.name || undefined,
         },
       },
       {
@@ -224,6 +284,50 @@ export default function RegisterHospital() {
                       </FormItem>
                     )}
                   />
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="text-sm font-medium leading-none">
+                      Proof of License (PDF, max 300 KB)
+                    </label>
+                    <div>
+                      {!licenseFile ? (
+                        <label
+                          htmlFor="license-document"
+                          className="flex items-center gap-2 cursor-pointer rounded-md border border-dashed border-input px-3 py-2.5 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          <Upload className="w-4 h-4 shrink-0" />
+                          <span>Click to upload your license document</span>
+                          <input
+                            id="license-document"
+                            type="file"
+                            accept="application/pdf"
+                            className="sr-only"
+                            onChange={handleLicenseFileChange}
+                          />
+                        </label>
+                      ) : (
+                        <div className="flex items-center gap-2 rounded-md border border-input px-3 py-2.5 text-sm">
+                          <FileText className="w-4 h-4 shrink-0 text-primary" />
+                          <span className="truncate flex-1">{licenseFile.name}</span>
+                          <span className="text-muted-foreground shrink-0">
+                            {formatFileSize(licenseFile.size)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={removeLicenseFile}
+                            className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                            aria-label="Remove file"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {licenseError ? (
+                      <p className="text-sm font-medium text-destructive">{licenseError}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Optional, but speeds up approval.</p>
+                    )}
+                  </div>
                   <FormField
                     control={form.control}
                     name="city"

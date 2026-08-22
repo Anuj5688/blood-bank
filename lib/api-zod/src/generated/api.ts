@@ -203,7 +203,9 @@ export const RegisterHospitalBody = zod.object({
   "email": zod.string(),
   "password": zod.string(),
   "website": zod.string().optional(),
-  "workingHours": zod.string().optional()
+  "workingHours": zod.string().optional(),
+  "licenseDocument": zod.string().optional().describe('Proof-of-license PDF as a base64 data URL (e.g. \"data:application\/pdf;base64,...\"). Max 300KB.'),
+  "licenseDocumentFileName": zod.string().optional().describe('Original filename of the uploaded license PDF.')
 })
 
 export const RegisterHospitalResponse = zod.object({
@@ -480,6 +482,8 @@ export const GetHospitalProfileResponse = zod.object({
   "googleMapsLat": zod.number().nullish(),
   "googleMapsLng": zod.number().nullish(),
   "logoUrl": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "approvalStatus": zod.string().optional(),
   "status": zod.string(),
   "createdAt": zod.string().optional()
@@ -519,6 +523,8 @@ export const UpdateHospitalProfileResponse = zod.object({
   "googleMapsLat": zod.number().nullish(),
   "googleMapsLng": zod.number().nullish(),
   "logoUrl": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "approvalStatus": zod.string().optional(),
   "status": zod.string(),
   "createdAt": zod.string().optional()
@@ -622,6 +628,8 @@ export const AdminListHospitalsResponseItem = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),
@@ -685,6 +693,8 @@ export const AdminCreateHospitalResponse = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),
@@ -725,6 +735,8 @@ export const AdminGetHospitalResponse = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),
@@ -786,6 +798,8 @@ export const AdminUpdateHospitalResponse = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),
@@ -836,6 +850,8 @@ export const ApproveHospitalResponse = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),
@@ -880,6 +896,8 @@ export const RejectHospitalResponse = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),
@@ -920,6 +938,8 @@ export const SuspendHospitalResponse = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),
@@ -960,6 +980,8 @@ export const ActivateHospitalResponse = zod.object({
   "approvalStatus": zod.string(),
   "isActive": zod.boolean().optional(),
   "rejectionReason": zod.string().nullish(),
+  "licenseDocumentUrl": zod.string().nullish().describe('Base64 data URL of the uploaded proof-of-license PDF.'),
+  "licenseDocumentFileName": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "bloodInventory": zod.array(zod.object({
   "id": zod.number(),

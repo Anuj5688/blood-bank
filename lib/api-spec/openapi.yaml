@@ -1527,6 +1527,14 @@ components:
         password: { type: string }
         website: { type: string }
         workingHours: { type: string }
+        licenseDocument:
+          type: string
+          description: >-
+            Proof-of-license PDF as a base64 data URL
+            (e.g. "data:application/pdf;base64,..."). Max 300KB.
+        licenseDocumentFileName:
+          type: string
+          description: Original filename of the uploaded license PDF.
 
     HospitalRegistrationResponse:
       type: object
@@ -1684,6 +1692,10 @@ components:
         googleMapsLat: { type: ["number", "null"] }
         googleMapsLng: { type: ["number", "null"] }
         logoUrl: { type: ["string", "null"] }
+        licenseDocumentUrl:
+          type: ["string", "null"]
+          description: Base64 data URL of the uploaded proof-of-license PDF.
+        licenseDocumentFileName: { type: ["string", "null"] }
         approvalStatus: { type: string }
         status: { type: string }
         createdAt: { type: string }
@@ -1732,6 +1744,10 @@ components:
         approvalStatus: { type: string }
         isActive: { type: boolean }
         rejectionReason: { type: ["string", "null"] }
+        licenseDocumentUrl:
+          type: ["string", "null"]
+          description: Base64 data URL of the uploaded proof-of-license PDF.
+        licenseDocumentFileName: { type: ["string", "null"] }
         createdAt: { type: string }
         bloodInventory:
           type: array

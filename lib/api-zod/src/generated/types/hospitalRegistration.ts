@@ -23,4 +23,8 @@ export interface HospitalRegistration {
   password: string;
   website?: string;
   workingHours?: string;
+  /** Proof-of-license PDF as a base64 data URL (e.g. "data:application/pdf;base64,..."). Max 300KB. */
+  licenseDocument?: string;
+  /** Original filename of the uploaded license PDF. */
+  licenseDocumentFileName?: string;
 }

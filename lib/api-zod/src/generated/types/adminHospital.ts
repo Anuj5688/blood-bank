@@ -34,6 +34,13 @@ export interface AdminHospital {
   isActive?: boolean;
   /** @nullable */
   rejectionReason?: string | null;
+  /**
+     * Base64 data URL of the uploaded proof-of-license PDF.
+     * @nullable
+     */
+  licenseDocumentUrl?: string | null;
+  /** @nullable */
+  licenseDocumentFileName?: string | null;
   createdAt?: string;
   bloodInventory?: BloodInventoryItem[];
 }

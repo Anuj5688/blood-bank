@@ -43,8 +43,11 @@ app.use(
       : undefined,
   ),
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Default 100kb limit is too small for the base64-encoded license PDF
+// (300KB file -> ~400KB base64). 1mb gives headroom without opening the
+// door to arbitrarily large request bodies.
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 app.use("/api", router);
 
