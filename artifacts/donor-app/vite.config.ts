@@ -13,7 +13,12 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${process.env.PORT}"`);
 }
 
-const basePath = process.env.BASE_PATH ?? "/";
+// BASE_PATH controls Vite's `base` config (the public URL path the app is
+// served from). Some hosting platforms (e.g. Vercel) can pass an empty
+// string for unset env vars rather than leaving them undefined, which
+// would otherwise bypass the `?? "/"` fallback below and break both asset
+// paths and client-side routing. Treat "" the same as unset.
+const basePath = process.env.BASE_PATH && process.env.BASE_PATH.length > 0 ? process.env.BASE_PATH : "/";
 
 export default defineConfig({
   base: basePath,
