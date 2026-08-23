@@ -43,6 +43,15 @@ app.use(
       : undefined,
   ),
 );
+// Express 5 (path-to-regexp v8) no longer accepts the bare "*" wildcard
+// pattern that the `cors` package uses internally to auto-register its
+// OPTIONS preflight handler — that registration silently fails, so every
+// preflight request falls through to Express's default handler and gets
+// a 405 instead of a successful CORS preflight response. Register an
+// explicit, Express-5-compatible wildcard route for OPTIONS so `cors()`
+// (already applied above, which sets all the CORS headers) can complete
+// the preflight handshake.
+app.options(/.*/, cors(allowedOrigins?.length ? { origin: allowedOrigins } : undefined));
 // Default 100kb limit is too small for the base64-encoded license PDF
 // (300KB file -> ~400KB base64). 1mb gives headroom without opening the
 // door to arbitrarily large request bodies.
