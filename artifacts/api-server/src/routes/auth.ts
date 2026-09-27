@@ -43,20 +43,29 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   const { email, password } = parsed.data;
 
   // Check admin first
-  const [admin] = await db
-   // Check admin first
-   let admin;
-   try {
-     [admin] = await db
-       .select()
-       .from(adminsTable)
-       .where(eq(adminsTable.email, email));
-   } catch (err: any) {
-     console.error("LOGIN DB ERROR:", err.message);
-     console.error("CAUSE:", err.cause);
-     throw err;
-   }
+     // Check admin first
+     let admin;
+     try {
+       [admin] = await db
+         .select()
+         .from(adminsTable)
+         .where(eq(adminsTable.email, email));
+     } catch (err: any) {
+       console.error("LOGIN DB ERROR:", err.message);
+       console.error("CAUSE:", err.cause);
+       throw err;
+     }
 
+     if (admin) {
+       const valid = await bcrypt.compare(password, admin.passwordHash);
+       if (!valid) {
+         res.status(401).json({ error: "Invalid credentials" });
+         return;
+       }
+       const token = signToken({ id: admin.id, email: admin.email, role: "admin" });
+       res.json({ token, role: "admin", hospitalId: null, name: admin.name });
+       return;
+     }
   if (admin) {
     const valid = await bcrypt.compare(password, admin.passwordHash);
     if (!valid) {
