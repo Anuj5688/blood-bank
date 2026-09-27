@@ -13,7 +13,10 @@ async function main() {
   const hash = bcrypt.hashSync(PASSWORD, 12);
   console.log("Generated hash:", hash);
 
-  const client = new Client({ connectionString: databaseUrl });
+  const client = new Client({
+    connectionString: databaseUrl,
+    ssl: { rejectUnauthorized: false },
+  });
   await client.connect();
 
   await client.query("DELETE FROM admins WHERE email = $1", [EMAIL]);
