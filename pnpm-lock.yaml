@@ -71,6 +71,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      bcryptjs:
+        specifier: 2.4.3
+        version: 2.4.3
     devDependencies:
       cross-env:
         specifier: ^10.1.0
@@ -904,6 +908,9 @@ importers:
 
   lib/db:
     dependencies:
+      bcryptjs:
+        specifier: 2.4.3
+        version: 2.4.3
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@types/pg@8.20.0)(pg@8.22.0)

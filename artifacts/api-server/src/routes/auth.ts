@@ -44,9 +44,18 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 
   // Check admin first
   const [admin] = await db
-    .select()
-    .from(adminsTable)
-    .where(eq(adminsTable.email, email));
+   // Check admin first
+   let admin;
+   try {
+     [admin] = await db
+       .select()
+       .from(adminsTable)
+       .where(eq(adminsTable.email, email));
+   } catch (err: any) {
+     console.error("LOGIN DB ERROR:", err.message);
+     console.error("CAUSE:", err.cause);
+     throw err;
+   }
 
   if (admin) {
     const valid = await bcrypt.compare(password, admin.passwordHash);
